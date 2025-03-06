@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require('cors');
 const axios = require("axios");
 
 const app = express();
@@ -8,6 +9,7 @@ const PORT = process.env.PORT || 3000;
 const LOCAL_SERVER_URL = "http://persan-homeserver.ddns.net:8080";
 
 app.use(express.json());
+app.use(cors());
 
 async function verificarMaquinaLigada() {
   try {
@@ -18,45 +20,41 @@ async function verificarMaquinaLigada() {
   }
 }
 
-app.get("/status", async (req, res) => {
+app.post("/executar", async (req, res) => {
   const maquinaLigada = await verificarMaquinaLigada();
-  // return res.status(200).json({ message: "Chegou aqui." });
+
   if (!maquinaLigada) {
     return res.status(400).json({
-      error: "Máquina não está ligada ou servidor local não está rodando.",
+      error: "Máquina não está ligada ou servidor local não está rodando (nuvem).",
     });
-  } else {
-    return res
-      .status(200)
-      .json({ message: "Máquina ligada e servidor local rodando." });
   }
 
-  //   const { script } = req.body;
+  const { endpoint, token, dados } = req.body; // Recebe os dados do frontend
 
-  // try {
-  //     const response = await axios.post(`${LOCAL_SERVER_URL}/executar-script`, { script });
-  //     res.json(response.data);
-  // } catch (error) {
-  //     res.status(500).json({ error: "Erro ao executar script." });
-  // }
-});
-app.post("/executar", async (req, res) => {
-    const maquinaLigada = await verificarMaquinaLigada();
-//   return res.status(200).json({ message: "Chegou aqui." });
-  if (!maquinaLigada) {
-    return res.status(400).json({
-      error: "Máquina não está ligada ou servidor local não está rodando.",
-    });
-  } 
+  if (!endpoint) {
+    return res
+      .status(400)
+      .json({ error: "Endpoint do servidor local não especificado." });
+  }
 
-  //   const { script } = req.body;
+  try {
+    const response = await axios.post(
+      `${LOCAL_SERVER_URL}/${endpoint}`,
+      dados,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
-  // try {
-  //     const response = await axios.post(`${LOCAL_SERVER_URL}/executar-script`, { script });
-  //     res.json(response.data);
-  // } catch (error) {
-  //     res.status(500).json({ error: "Erro ao executar script." });
-  // }
+    res.json(response.data);
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        error: "Erro ao chamar o servidor local.",
+        details: error.message,
+      });
+  }
 });
 
 app.listen(PORT, () => {
