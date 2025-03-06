@@ -20,7 +20,7 @@ async function verificarMaquinaLigada() {
 
 app.post("/executar", async (req, res) => {
   const maquinaLigada = await verificarMaquinaLigada();
-
+    return res.status(200).json({ message: "Chegou aqui." });
   if (!maquinaLigada) {
     return res.status(400).json({
       error: "Máquina não está ligada ou servidor local não está rodando.",
