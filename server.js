@@ -18,9 +18,9 @@ async function verificarMaquinaLigada() {
   }
 }
 
-app.post("/executar", async (req, res) => {
+app.get("/status", async (req, res) => {
   const maquinaLigada = await verificarMaquinaLigada();
-    return res.status(200).json({ message: "Chegou aqui." });
+  // return res.status(200).json({ message: "Chegou aqui." });
   if (!maquinaLigada) {
     return res.status(400).json({
       error: "Máquina não está ligada ou servidor local não está rodando.",
@@ -30,6 +30,24 @@ app.post("/executar", async (req, res) => {
       .status(200)
       .json({ message: "Máquina ligada e servidor local rodando." });
   }
+
+  //   const { script } = req.body;
+
+  // try {
+  //     const response = await axios.post(`${LOCAL_SERVER_URL}/executar-script`, { script });
+  //     res.json(response.data);
+  // } catch (error) {
+  //     res.status(500).json({ error: "Erro ao executar script." });
+  // }
+});
+app.post("/executar", async (req, res) => {
+    const maquinaLigada = await verificarMaquinaLigada();
+//   return res.status(200).json({ message: "Chegou aqui." });
+  if (!maquinaLigada) {
+    return res.status(400).json({
+      error: "Máquina não está ligada ou servidor local não está rodando.",
+    });
+  } 
 
   //   const { script } = req.body;
 
